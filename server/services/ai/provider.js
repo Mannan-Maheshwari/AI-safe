@@ -9,8 +9,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const RETRYABLE = [429, 500, 502, 503, 504];
 
 async function callGemini(body) {
-  const models = [config.geminiModel, ...(process.env.GEMINI_FALLBACK_MODELS || 'gemini-2.5-flash,gemini-2.5-flash-lite').split(',')]
-    .map((m) => m.trim()).filter((m, i, a) => m && a.indexOf(m) === i);
+  const models = [
+  config.geminiModel,
+  ...(process.env.GEMINI_FALLBACK_MODELS ||
+    'gemini-3.8-flash').split(',')
+]
+  .map((m) => m.trim())
+  .filter((m, i, a) => m && a.indexOf(m) === i);
   let last = 'unknown error';
   for (const model of models) {
     for (let attempt = 0; attempt < 3; attempt++) {
@@ -22,7 +27,20 @@ async function callGemini(body) {
           body: JSON.stringify(body),
           signal: AbortSignal.timeout(30000),
         });
-      } catch (e) { last = `network error on "${model}"`; await sleep(800 * 2 ** attempt); continue; }
+      } catch (e) {
+            last = `${e.name}: ${e.message} on "${model}"`;
+
+            console.error('[Gemini Network Error]', {
+              model,
+              name: e.name,
+              message: e.message,
+              cause: e.cause?.message,
+              attempt: attempt + 1,
+            });
+
+            await sleep(800 * 2 ** attempt);
+            continue;
+          }
       if (r.ok) return r.json();
       last = `HTTP ${r.status} on "${model}"`;
       if (r.status === 404) break; // model missing: go straight to the next one

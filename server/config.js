@@ -6,7 +6,7 @@ export const config = {
   jwtSecret: process.env.JWT_SECRET || 'dev-secret-change-me',
   clientUrl: process.env.CLIENT_URL || 'http://localhost:5173',
   geminiKey: process.env.GEMINI_API_KEY || '',
-  geminiModel: process.env.GEMINI_MODEL || 'gemini-flash-latest',
+  geminiModel: process.env.GEMINI_MODEL || 'gemini-3.8-flash',
   approvalTtlMs: (Number(process.env.APPROVAL_TTL_MIN) || 15) * 60000,
   transferLimit: Number(process.env.TRANSFER_LIMIT) || 50000,
   // Configurable risk thresholds (SRS FR-07) — calibrate during testing
